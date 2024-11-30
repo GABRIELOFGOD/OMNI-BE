@@ -5,6 +5,12 @@ export const createUserSchema = Joi.object({
   lastName: Joi.string().required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
+  passwordConfirm: Joi.string()
+  .valid(Joi.ref('password'))
+  .required()
+  .messages({
+    'any.only': 'Password confirmation does not match password',
+  }),
   country: Joi.string().required(),
   city: Joi.string().required(),
   address: Joi.string().required(),

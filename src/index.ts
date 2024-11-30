@@ -1,7 +1,8 @@
 import express, { NextFunction, Request, Response } from "express";
 import path from "path";
 import { config } from "dotenv";
-import { AppError, globalErrorHandler } from "./services/errorHandling.service";
+import { AppError } from "./services/errorHandling.service";
+import globalErrorHandler from "./controllers/error.controller";
 import userRoutes from "./routes/user.route";
 import dbConfig from "./configs/database.config";
 import { dataSource } from "./configs/dataSource";
@@ -42,7 +43,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/api/v2/user", userRoutes);
+app.use("/api/v2/users", userRoutes);
 
 // ========== ERROR HANDLING ========== //
 app.all("*", (req: Request, res: Response, next: NextFunction) =>

@@ -1,13 +1,17 @@
+
+
 import {
-  Column,
-  CreateDateColumn,
   Entity,
-  ManyToMany,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
 } from "typeorm";
+import bcrypt from "bcryptjs";
 
 @Entity("users")
 export class User {
@@ -30,19 +34,19 @@ export class User {
   address!: string;
 
   @Column({ nullable: true })
-  lastIpAdress!: string;
+  lastIpAdress?: string;
 
-  @ManyToOne(() => User, (user) => user.referrers)
-  referredBy!: User;
+  @ManyToOne(() => User, (user) => user.referrers, { nullable: true })
+  referredBy?: User;
 
   @OneToMany(() => User, (user) => user.referredBy)
-  referrers!: User[];
+  referrers?: User[];
 
   @Column()
   phoneNumber!: string;
 
   @Column({ nullable: true })
-  referralCode!: string;
+  referralCode?: string;
 
   @Column()
   email!: string;
@@ -53,18 +57,44 @@ export class User {
   @Column({ default: "user" })
   role!: string;
 
+  @Column({ type: "varchar", nullable: true })
+  passwordResetToken?: string;
+
+  @Column({ type: "timestamp", nullable: true })
+  passwordResetExpires?: Date;
+
+  @Column({ type: "bigint", nullable: true })
+  passwordChangedAt?: Date | number;
+
+  @Column({ type: "varchar", length: 255, nullable: true })
+  verificationToken?: string;
+
+  @CreateDateColumn({ nullable: true })
+  verificationTokenExpires?: Date;
+
+  @Column({ default: false })
+  isVerified!: boolean;
+
   @CreateDateColumn()
   createdAt!: Date;
 
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @Column({ type: "varchar", length: 255, nullable: true })
-  verificationToken!: string | null;
+  // Hash password before saving for the first time
+  @BeforeInsert()
+  async hashPasswordBeforeInsert() {
+    if (this.password && !this.password.startsWith("$2b$")) {
+      this.password = await bcrypt.hash(this.password, 12);
+    }
+  }
 
-  @CreateDateColumn({ nullable: true })
-  verificationTokenExpires!: Date | null;
-
-  @Column({ default: false })
-  isVerified!: boolean;
+  // Hash password on update only if it has changed
+  @BeforeUpdate()
+  async hashPasswordBeforeUpdate() {
+    if (this.password && !this.password.startsWith("$2b$")) {
+      this.password = await bcrypt.hash(this.password, 12);
+      this.passwordChangedAt = Date.now() - 1000;
+    }
+  }
 }
