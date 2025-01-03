@@ -55,7 +55,7 @@ export  class UserController {
     // ============== CREATE TOKEN ============== //
     const authToken = this.userService.generateAuthToken(newUser);
     // console.log("authToken", authToken);
-    return res.status(201).json({ status: "User created successfully", token: authToken });
+    return res.status(201).json({ status: "success", message: "User created successfully", token: authToken });
   });
 
   // =================== LOGIN =================== //
@@ -97,6 +97,19 @@ export  class UserController {
     return res.status(200).json({ status: "User profile", user: rest });
   });
 
+  // ==================== GET ALL USERS CONTROLLER ================= //
+  getAllUsers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const theUser = req.user;
+    if(!theUser) return next(new AppError("Unauthorized request", 400));
+    const user = await this.userRepository.findOne({
+      where: { email: theUser.email }
+    });
+    if (!user || user.role !== "admin") return next(new AppError("Sorry! you are not allowed to perform this operation.", 404));
+    const users = await this.userRepository.find();
+    res.status(200).json({ users });
+  });
+
+  // ========================= ALL TEAM MEMBERS ======================= //
   totalTeamMembers = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const theUser = req.user;
   
@@ -105,7 +118,7 @@ export  class UserController {
   
       const currentUser = await this.userRepository.findOne({
         where: { id: user.id },
-        relations: ["referrers"],
+        relations: ["referrers", "referrers.investments"],
       });
       if (!currentUser || !currentUser.referrers) return [];  
       let allReferrers = [...currentUser.referrers];  
@@ -118,7 +131,7 @@ export  class UserController {
   
     const user = await this.userRepository.findOne({
       where: { id: theUser.id },
-      relations: ["referrers"],
+      relations: ["referrers", "referrers.investments"],
     });  
     if (!user) return next(new AppError("User not found", 404));  
     const allReferrers = await getAllReferrers(user, 1);

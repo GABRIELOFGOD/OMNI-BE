@@ -27,5 +27,8 @@ router.use(authMiddleware);
 router.get("/profile", userController.userProfile);
 router.get("/team", userController.totalTeamMembers);
 
+// ============== ADMIN ROLES ============== //
+router.get("/", userController.getAllUsers);
+
 export default router;
 // https://github.com/GABRIELOFGOD/OMNI-BE

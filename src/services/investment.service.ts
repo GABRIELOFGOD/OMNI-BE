@@ -1,11 +1,13 @@
 import { Repository } from "typeorm";
 import { User } from "../entities/user.entity";
 import { Earning, EarningType } from "../entities/earnings.entity";
+import { ReturnController } from "../controllers/Return.controller";
 
 export class InvestmentService {
   constructor(
     private readonly userRepository: Repository<User>,
-    private readonly earningHistoryRepository: Repository<Earning>
+    private readonly earningHistoryRepository: Repository<Earning>,
+    private readonly returnService: ReturnController
   ) {}
 
   calculateInvestmentRoi(amount: number): number{
@@ -111,7 +113,7 @@ export class InvestmentService {
         relations: ["earningsHistory"]
        });
       if (!directReferral) return false;
-      directReferral.claimable += 6;
+      directReferral.oneDollar = parseFloat((Number(directReferral.oneDollar) + Number(6)).toFixed(4));
       const directReferralEarning = this.earningHistoryRepository.create({
         amount: 6,
         user: directReferral,
@@ -126,7 +128,7 @@ export class InvestmentService {
       let referrer = directReferral.referredBy;
       for (let i = 0; i < 14; i++) {
         if (!referrer) break;
-        referrer.claimable += 1;
+        referrer.oneDollar = parseFloat((Number(directReferral.oneDollar) + Number(1)).toFixed(4));
         const referrerEarning = this.earningHistoryRepository.create({
           amount: 1,
           user: referrer,
@@ -141,6 +143,31 @@ export class InvestmentService {
       return true;
     } catch (error: any) {
       throw error;
+    }
+  }
+
+  promotionalIncome = async (user: User, amount: number) => {
+    try {
+      const upline = user.referredBy;
+      if (!upline) return;
+      const newEarning = this.earningHistoryRepository.create({
+        amount: 1,
+        user: upline,
+        type: EarningType.PROMOTIONAL_INCOME,
+        description: "Promotional income",
+      });
+      const earning = await this.earningHistoryRepository.save(newEarning);
+      upline.earningsHistory && upline.earningsHistory.push(earning);
+
+      const lastPromotion = await this.returnService.getLastAddedPromotion();
+      if (!lastPromotion) return;
+      const percentageToEarn = (lastPromotion.amount / 100) * amount;
+      
+      upline.promotion = parseFloat((Number(upline.promotion) + Number(percentageToEarn)).toFixed(4));
+      const savedUpline = await this.userRepository.save(upline);
+      
+    } catch (error) {
+      throw error
     }
   }
   

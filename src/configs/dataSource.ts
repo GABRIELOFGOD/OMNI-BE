@@ -5,6 +5,7 @@ import { User } from '../entities/user.entity';
 import { Earning } from '../entities/earnings.entity';
 import { Investment } from '../entities/investment.entity';
 import { Return } from '../entities/return.entity';
+import { Promotion } from '../entities/promotion.entity';
 config();
 
 export const dataSource = new DataSource({
@@ -14,6 +15,6 @@ export const dataSource = new DataSource({
   username: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: [User, Earning, Investment, Return],
+  entities: [User, Earning, Investment, Return, Promotion],
   synchronize: true,
 });

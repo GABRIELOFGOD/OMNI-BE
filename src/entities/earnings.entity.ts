@@ -20,7 +20,7 @@ export enum EarningType {
   ONE_DOLLAR_MAGIC = "one-dollar-magic",
   SIX_DOLLAR_MAGIC = "six-dollar-magic",
   ROI = "roi",
-  REF_COMMISSION = "ref-commission",
+  PROMOTIONAL_INCOME = "promotional-income",
   REFERRAL_BONUS = "referral-bonus",
 }
 

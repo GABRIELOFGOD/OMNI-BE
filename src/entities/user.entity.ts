@@ -77,10 +77,13 @@ export class User {
   balance!: number;
 
   @Column({ type: "decimal", precision: 10, scale: 4, default: "0.00" })
-  tradingBalance!: number;
+  promotion!: number;
 
   @Column({ type: "decimal", precision: 10, scale: 4, default: "0.00" })
   claimable!: number;
+
+  @Column({ type: "decimal", precision: 10, scale: 4, default: "0.00" })
+  oneDollar!: number;
 
   @Column()
   password!: string;
